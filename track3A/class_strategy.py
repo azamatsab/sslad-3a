@@ -1,4 +1,11 @@
+from torchvision import transforms
+import numpy as np
+import torch
+from catalyst.data.sampler import BalanceClassSampler, BatchBalanceClassSampler
+
 from avalanche.training.plugins.strategy_plugin import StrategyPlugin
+from avalanche.benchmarks.utils import AvalancheConcatDataset
+from avalanche.benchmarks.utils.data_loader import TaskBalancedDataLoader, GroupBalancedDataLoader, ReplayDataLoader
 
 """
 A strategy pulgin can change the strategy parameters before and after 
@@ -42,8 +49,23 @@ class ClassStrategyPlugin(StrategyPlugin):
     def before_training(self, strategy: 'BaseStrategy', **kwargs):
         pass
 
-    def before_training_exp(self, strategy: 'BaseStrategy', **kwargs):
-        pass
+    def before_training_exp(self, strategy: 'BaseStrategy', num_workers=0, shuffle=False,
+                              pin_memory=True, **kwargs):
+        targets = np.array(strategy.adapted_dataset.targets)
+        target_nums = []
+        for i in range(1, 7):
+            target_nums.append(targets[targets == i].shape[0])
+        if 0 in target_nums:
+            strategy.optimizer = torch.optim.SGD(strategy.model.parameters(), lr=0)
+        else:
+            strategy.optimizer = torch.optim.Adam(strategy.model.parameters(), lr=0.0001)
+
+        strategy.dataloader = torch.utils.data.DataLoader(
+            strategy.adapted_dataset,
+            sampler=BalanceClassSampler(labels=targets, mode='upsampling'),
+            num_workers=num_workers,
+            batch_size=strategy.train_mb_size,
+            shuffle=shuffle)
 
     def before_train_dataset_adaptation(self, strategy: 'BaseStrategy',
                                         **kwargs):
@@ -51,7 +73,12 @@ class ClassStrategyPlugin(StrategyPlugin):
 
     def after_train_dataset_adaptation(self, strategy: 'BaseStrategy',
                                        **kwargs):
-        pass
+        torchvision_transform = transforms.Compose([
+                                transforms.RandomHorizontalFlip(),
+                                transforms.RandomPerspective(),
+                                transforms.RandomErasing(),
+                            ])
+        strategy.adapted_dataset = strategy.adapted_dataset.add_transforms(torchvision_transform)
 
     def before_training_epoch(self, strategy: 'BaseStrategy', **kwargs):
         pass

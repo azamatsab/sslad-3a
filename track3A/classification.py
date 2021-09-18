@@ -1,24 +1,26 @@
 import torch
 import torchvision.models
 from torch.nn import Linear
+from timm.models import create_model
 
 import argparse
 
 from avalanche.benchmarks.scenarios.generic_benchmark_creation import create_multi_dataset_generic_benchmark
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, class_accuracy_metrics
 from avalanche.logging import TextLogger, InteractiveLogger
-from avalanche.training.plugins import EvaluationPlugin
+from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin
 from avalanche.training.strategies import Naive
 
 from class_strategy import *
 from classification_util import *
-
+from lr_scheduler import LRSchedulerIterPlugin
+from losses import FocalLoss
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, default='result',
                         help='Name of the result files')
-    parser.add_argument('--root', default="../data",
+    parser.add_argument('--root', default="/data/aza_s/codalab/SSLAD-2D",
                         help='Root folder where the data is stored')
     parser.add_argument('--num_workers', type=int, default=4,
                         help='Num workers to use for dataloading. Recommended to have more than 1')
@@ -38,18 +40,36 @@ def main():
     #                                    #
     ######################################
 
-    args.root = f"{args.root}/SSLAD-2D/labeled"
-    device = torch.device('cuda' if torch.cuda.is_available() and not args.no_cuda else 'cpu')
+    args.root = f"{args.root}/labeled"
+    device = torch.device('cuda:6' if torch.cuda.is_available() and not args.no_cuda else 'cpu')
 
     model = torchvision.models.resnet50(pretrained=True)
     model.fc = Linear(2048, 7, bias=True)
+    
+    # model = create_model(
+    #         model_name='efficientnet_b3',
+    #         pretrained=True,
+    #         num_classes=7,
+    #     )
+    
+    def count_parameters(model):
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+    print(count_parameters(model))
+    
+    # optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+    # optimizer = torch.optim.AdamW([{'params': model.parameters(), 'initial_lr': 0.0001}], lr=0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=200, T_mult=1)
+    
+    # criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([1., 4., 6., 1., 1.5, 10., 50.]).to(device))
     criterion = torch.nn.CrossEntropyLoss()
-    batch_size = 10
+    # criterion = FocalLoss()
+    batch_size = 6
 
     # Add any additional plugins to be used by Avalanche to this list. A template
     # is provided in class_strategy.py.
+    # plugins = [ClassStrategyPlugin(), LRSchedulerIterPlugin(scheduler)]
     plugins = [ClassStrategyPlugin()]
 
     ######################################
