@@ -2,10 +2,13 @@ from torchvision import transforms
 import numpy as np
 import torch
 from catalyst.data.sampler import BalanceClassSampler, BatchBalanceClassSampler
+import albumentations as A
 
 from avalanche.training.plugins.strategy_plugin import StrategyPlugin
 from avalanche.benchmarks.utils import AvalancheConcatDataset
 from avalanche.benchmarks.utils.data_loader import TaskBalancedDataLoader, GroupBalancedDataLoader, ReplayDataLoader
+
+from transform_wrapper import Atw
 
 """
 A strategy pulgin can change the strategy parameters before and after 
@@ -39,6 +42,7 @@ The training loop is organized as follows::
                             model update
 """
 
+normalize = transforms.Normalize((0.3252, 0.3283, 0.3407), (0.0265, 0.0241, 0.0252))
 
 class ClassStrategyPlugin(StrategyPlugin):
 
@@ -57,22 +61,6 @@ class ClassStrategyPlugin(StrategyPlugin):
         if self.exp_num > 0:
             strategy.optimizer = torch.optim.Adam(strategy.model.parameters(), lr=0.00001)
         
-        # target_nums = []
-        # for i in range(1, 7):
-        #     target_nums.append(targets[targets == i].shape[0])
-        # if 0 in target_nums:
-        #     strategy.optimizer = torch.optim.SGD(strategy.model.parameters(), lr=0)
-        # else:
-        #     strategy.optimizer = torch.optim.Adam(strategy.model.parameters(), lr=0.0001)
-
-        # if self.ext_mem:
-        #     dataset = torch.utils.data.ConcatDataset([strategy.adapted_dataset, self.ext_mem]),
-        #     self.ext_mem = strategy.adapted_dataset._fork_dataset()
-        #     strategy.adapted_dataset = dataset
-        # else:
-        #     self.ext_mem = strategy.adapted_dataset._fork_dataset()
-        #     dataset = strategy.adapted_dataset
-
         strategy.dataloader = torch.utils.data.DataLoader(
             strategy.adapted_dataset,
             sampler=BalanceClassSampler(labels=targets, mode='upsampling'),
@@ -92,6 +80,9 @@ class ClassStrategyPlugin(StrategyPlugin):
                                 transforms.RandomHorizontalFlip(),
                                 transforms.RandomPerspective(),
                                 transforms.RandomErasing(),
+                                # Atw(A.HueSaturationValue(p=0.5)),
+                                # Atw(A.RandomBrightness(p=0.5)),
+                                # normalize,
                             ])
         strategy.adapted_dataset = strategy.adapted_dataset.add_transforms(torchvision_transform)
 
@@ -139,6 +130,10 @@ class ClassStrategyPlugin(StrategyPlugin):
         pass
 
     def after_eval_dataset_adaptation(self, strategy: 'BaseStrategy', **kwargs):
+        # torchvision_transform = transforms.Compose([
+        #                         normalize,
+        #                     ])
+        # strategy.adapted_dataset = strategy.adapted_dataset.add_transforms(torchvision_transform)
         pass
 
     def before_eval_exp(self, strategy: 'BaseStrategy', **kwargs):
