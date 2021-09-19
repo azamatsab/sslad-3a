@@ -44,7 +44,9 @@ class ClassStrategyPlugin(StrategyPlugin):
 
     def __init__(self):
         super(ClassStrategyPlugin).__init__()
-        pass
+        self.exp_num = 0
+        self.ext_mem = None
+        self.bad_prev = False
 
     def before_training(self, strategy: 'BaseStrategy', **kwargs):
         pass
@@ -52,13 +54,24 @@ class ClassStrategyPlugin(StrategyPlugin):
     def before_training_exp(self, strategy: 'BaseStrategy', num_workers=0, shuffle=False,
                               pin_memory=True, **kwargs):
         targets = np.array(strategy.adapted_dataset.targets)
-        target_nums = []
-        for i in range(1, 7):
-            target_nums.append(targets[targets == i].shape[0])
-        if 0 in target_nums:
-            strategy.optimizer = torch.optim.SGD(strategy.model.parameters(), lr=0)
-        else:
-            strategy.optimizer = torch.optim.Adam(strategy.model.parameters(), lr=0.0001)
+        if self.exp_num > 0:
+            strategy.optimizer = torch.optim.Adam(strategy.model.parameters(), lr=0.00001)
+        
+        # target_nums = []
+        # for i in range(1, 7):
+        #     target_nums.append(targets[targets == i].shape[0])
+        # if 0 in target_nums:
+        #     strategy.optimizer = torch.optim.SGD(strategy.model.parameters(), lr=0)
+        # else:
+        #     strategy.optimizer = torch.optim.Adam(strategy.model.parameters(), lr=0.0001)
+
+        # if self.ext_mem:
+        #     dataset = torch.utils.data.ConcatDataset([strategy.adapted_dataset, self.ext_mem]),
+        #     self.ext_mem = strategy.adapted_dataset._fork_dataset()
+        #     strategy.adapted_dataset = dataset
+        # else:
+        #     self.ext_mem = strategy.adapted_dataset._fork_dataset()
+        #     dataset = strategy.adapted_dataset
 
         strategy.dataloader = torch.utils.data.DataLoader(
             strategy.adapted_dataset,
@@ -66,6 +79,8 @@ class ClassStrategyPlugin(StrategyPlugin):
             num_workers=num_workers,
             batch_size=strategy.train_mb_size,
             shuffle=shuffle)
+
+        self.exp_num += 1
 
     def before_train_dataset_adaptation(self, strategy: 'BaseStrategy',
                                         **kwargs):

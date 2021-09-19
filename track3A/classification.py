@@ -8,7 +8,7 @@ import argparse
 from avalanche.benchmarks.scenarios.generic_benchmark_creation import create_multi_dataset_generic_benchmark
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, class_accuracy_metrics
 from avalanche.logging import TextLogger, InteractiveLogger
-from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin
+from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin, LwFPlugin, CWRStarPlugin
 from avalanche.training.strategies import Naive
 
 from class_strategy import *
@@ -70,7 +70,9 @@ def main():
     # Add any additional plugins to be used by Avalanche to this list. A template
     # is provided in class_strategy.py.
     # plugins = [ClassStrategyPlugin(), LRSchedulerIterPlugin(scheduler)]
-    plugins = [ClassStrategyPlugin()]
+    # plugins = [ClassStrategyPlugin(), LwFPlugin(2, 4)]
+    plugins = [ClassStrategyPlugin(), CWRStarPlugin(model, 'fc')]
+    
 
     ######################################
     #                                    #
