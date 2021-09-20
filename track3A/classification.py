@@ -8,8 +8,9 @@ import argparse
 from avalanche.benchmarks.scenarios.generic_benchmark_creation import create_multi_dataset_generic_benchmark
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, class_accuracy_metrics
 from avalanche.logging import TextLogger, InteractiveLogger
-from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin, LwFPlugin, CWRStarPlugin, SynapticIntelligencePlugin
+from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin, LwFPlugin, CWRStarPlugin, SynapticIntelligencePlugin, ClassBalancedStoragePolicy, AGEMPlugin
 from avalanche.training.strategies import Naive
+from avalanche.models import IcarlNet
 
 from class_strategy import *
 from classification_util import *
@@ -48,7 +49,7 @@ def main():
     model.fc = Linear(2048, 7, bias=True)
     
     # model = create_model(
-    #         model_name='efficientnet_b3',
+    #         model_name='resnetv2_50x1_bitm',
     #         pretrained=True,
     #         num_classes=7,
     #     )
@@ -61,7 +62,7 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
     # optimizer = torch.optim.AdamW([{'params': model.parameters(), 'initial_lr': 0.0001}], lr=0.0001)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=12000, T_mult=1)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=12000, T_mult=1)
     
     # criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([1., 4., 6., 1., 1.5, 10., 50.]).to(device))
     criterion = torch.nn.CrossEntropyLoss()
@@ -70,9 +71,12 @@ def main():
 
     # Add any additional plugins to be used by Avalanche to this list. A template
     # is provided in class_strategy.py.
-    # plugins = [ClassStrategyPlugin(), LRSchedulerIterPlugin(scheduler)]
-    # plugins = [ClassStrategyPlugin(), LFLPlugin(1)]
-    plugins = [ClassStrategyPlugin(), CWRStarPlugin(model, 'fc', freeze_remaining_model=False)]
+
+    sch_plugin = LRSchedulerIterPlugin(scheduler)
+    # replay = ReplayPlugin(1000, ClassBalancedStoragePolicy({}, 1000))
+    replay = ReplayPlugin(1000)
+    cwr = CWRStarPlugin(model, freeze_remaining_model=False)
+    plugins = [ClassStrategyPlugin(), cwr, AGEMPlugin(200, 10)]
     
 
     ######################################

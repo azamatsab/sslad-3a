@@ -42,7 +42,7 @@ The training loop is organized as follows::
                             model update
 """
 
-normalize = transforms.Normalize((0.3252, 0.3283, 0.3407), (0.0265, 0.0241, 0.0252))
+normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
 class ClassStrategyPlugin(StrategyPlugin):
 
@@ -72,6 +72,15 @@ class ClassStrategyPlugin(StrategyPlugin):
 
     def before_train_dataset_adaptation(self, strategy: 'BaseStrategy',
                                         **kwargs):
+        # targets = np.array(strategy.experience.dataset.targets)
+        # dataset = strategy.experience.dataset
+
+        # indices = {}
+        # existed_targets = list(set(strategy.experience.dataset.targets))
+        # for index in range(len(existed_targets)):
+        #     label = existed_targets[index]
+        #     indices[index] = np.argwhere(targets == label).reshape(-1)
+        # dataset.tasks_pattern_indices = indices
         pass
 
     def after_train_dataset_adaptation(self, strategy: 'BaseStrategy',
@@ -85,6 +94,11 @@ class ClassStrategyPlugin(StrategyPlugin):
                                 # normalize,
                             ])
         strategy.adapted_dataset = strategy.adapted_dataset.add_transforms(torchvision_transform)
+        # if self.exp_num == 0:
+        #     datasets = []
+        #     for _ in range(3):
+        #         datasets.append(strategy.adapted_dataset._fork_dataset())
+        #     strategy.adapted_dataset = AvalancheConcatDataset(datasets)
 
     def before_training_epoch(self, strategy: 'BaseStrategy', **kwargs):
         pass
