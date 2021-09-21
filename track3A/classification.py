@@ -8,7 +8,8 @@ import argparse
 from avalanche.benchmarks.scenarios.generic_benchmark_creation import create_multi_dataset_generic_benchmark
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, class_accuracy_metrics
 from avalanche.logging import TextLogger, InteractiveLogger
-from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin, LwFPlugin, CWRStarPlugin, SynapticIntelligencePlugin, ClassBalancedStoragePolicy, AGEMPlugin
+from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin, LwFPlugin, CWRStarPlugin, SynapticIntelligencePlugin, \
+ClassBalancedStoragePolicy, AGEMPlugin, CoPEPlugin, EWCPlugin
 from avalanche.training.strategies import Naive
 from avalanche.models import IcarlNet
 
@@ -76,7 +77,8 @@ def main():
     # replay = ReplayPlugin(1000, ClassBalancedStoragePolicy({}, 1000))
     replay = ReplayPlugin(1000)
     cwr = CWRStarPlugin(model, freeze_remaining_model=False)
-    plugins = [ClassStrategyPlugin(), cwr, AGEMPlugin(200, 10)]
+    agem = AGEMPlugin(1000, 100)
+    plugins = [ClassStrategyPlugin(), cwr, agem]
     
 
     ######################################
