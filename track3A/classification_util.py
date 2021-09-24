@@ -66,7 +66,7 @@ def create_train_set(root, img_size, avalanche=True, transform=None):
 
     match_fn = (hc.create_match_dict_fn(td) for td in task_dicts)
 
-    train_sets = [hc.get_matching_set(root, 'val', mf, img_size=img_size, transform=transform) for mf in match_fn]
+    train_sets = [hc.get_matching_set(root, 'val', mf, img_size=img_size, transform=transform, train=True) for mf in match_fn]
     for ts in train_sets:
         ts.chronological_sort()
 

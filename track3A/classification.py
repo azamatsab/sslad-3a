@@ -8,7 +8,7 @@ import argparse
 from avalanche.benchmarks.scenarios.generic_benchmark_creation import create_multi_dataset_generic_benchmark
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, class_accuracy_metrics
 from avalanche.logging import TextLogger, InteractiveLogger
-from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin, LwFPlugin, CWRStarPlugin, SynapticIntelligencePlugin, \
+from avalanche.training.plugins import EvaluationPlugin, LwFPlugin, CWRStarPlugin, SynapticIntelligencePlugin, \
 ClassBalancedStoragePolicy, AGEMPlugin, CoPEPlugin, EWCPlugin
 from avalanche.training.strategies import Naive
 from avalanche.models import IcarlNet
@@ -18,6 +18,7 @@ from classification_util import *
 from lr_scheduler import LRSchedulerIterPlugin
 from losses import FocalLoss
 from lfl import LFLPlugin
+from replay import ReplayPlugin
 
 def main():
     parser = argparse.ArgumentParser()
@@ -65,9 +66,9 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=12000, T_mult=1)
     
-    # criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([1., 4., 6., 1., 1.5, 10., 50.]).to(device))
-    criterion = torch.nn.CrossEntropyLoss()
-    # criterion = FocalLoss()
+    criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([0., 20., 1., 1., 1., 20., 300.]).to(device))
+    # criterion = torch.nn.CrossEntropyLoss()
+    # criterion = FocalLoss(10, 10)
     batch_size = 10
 
     # Add any additional plugins to be used by Avalanche to this list. A template
@@ -78,8 +79,8 @@ def main():
     replay = ReplayPlugin(1000)
     cwr = CWRStarPlugin(model, freeze_remaining_model=False)
     agem = AGEMPlugin(1000, 100)
-    plugins = [ClassStrategyPlugin(), cwr, agem]
-    
+    # plugins = [ClassStrategyPlugin(), cwr, replay]    
+    plugins = [ClassStrategyPlugin(), replay]    
 
     ######################################
     #                                    #
@@ -123,6 +124,7 @@ def main():
 
         results = strategy.eval(benchmark.test_stream, num_workers=args.num_workers)
         mean_acc = [r[1] for r in results['Top1_ClassAcc_Stream/eval_phase/test_stream/Task000']]
+        print(f'Mean {sum(mean_acc) / len(mean_acc)}')
         accuracies_test.append(sum(mean_acc) / len(mean_acc))
 
     print(f"Average mean test accuracy: {sum(accuracies_test) / len(accuracies_test) * 100:.3f}%")

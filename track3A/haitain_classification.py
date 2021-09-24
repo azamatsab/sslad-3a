@@ -54,7 +54,7 @@ class HaitainObjectSet(torch.utils.data.Dataset):
     Dataset wrapper for the haitain data.
     """
     def __init__(self, samples: List[HaitainObject], transform=None, meta=None, image_annot=None, obj_annot=None,
-                 img_size=None, root=None, split=None):
+                 img_size=None, root=None, split=None, train=False):
         """
         :param samples: An iterable of haitain objects
         :param transform: a transformation to be applied to every object before __getitem__
@@ -71,6 +71,7 @@ class HaitainObjectSet(torch.utils.data.Dataset):
         self.img_size = img_size
         self.root = root
         self.split = split
+        self.mult = 1 if train else 1
 
     @property
     def targets(self):
@@ -87,6 +88,7 @@ class HaitainObjectSet(torch.utils.data.Dataset):
         return self.image_annot[self.obj_annot[self.samples[item].id]["image_id"]]
 
     def lazy_get(self, item):
+        item = item // self.mult
         obj_id = self.samples[item].id
         file_name = self.image_annot[self.obj_annot[obj_id]['image_id']]['file_name']
         # img = torchvision.io.read_image(os.path.join(self.root, self.split, file_name))
@@ -100,7 +102,7 @@ class HaitainObjectSet(torch.utils.data.Dataset):
         return x, y
 
     def __len__(self):
-        return len(self.samples)
+        return self.mult * len(self.samples)
 
     def __getitem__(self, item):
         return self.lazy_get(item)
@@ -274,7 +276,7 @@ def _load_all_objects_ids(obj_dic, min_area=1024, remove_occluded=True):
     return objects
 
 
-def get_matching_set(root, split, match_fn, img_size=None, transform=None) -> HaitainObjectSet:
+def get_matching_set(root, split, match_fn, img_size=None, transform=None, train=False) -> HaitainObjectSet:
     """
     :param root: root path of where to look for pickled object files
     :param split: train, val or test split
@@ -297,7 +299,7 @@ def get_matching_set(root, split, match_fn, img_size=None, transform=None) -> Ha
 
     matching = [obj for obj in all_objects if match_fn(obj, img_dic, obj_dic)]
     return HaitainObjectSet(matching, transform, image_annot=img_dic, obj_annot=obj_dic,
-                            root=root, split=split, img_size=img_size)
+                            root=root, split=split, img_size=img_size, train=train)
 
 
 def create_match_date(date):

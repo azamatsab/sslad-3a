@@ -59,14 +59,8 @@ class ClassStrategyPlugin(StrategyPlugin):
                               pin_memory=True, **kwargs):
         targets = np.array(strategy.adapted_dataset.targets)
         if self.exp_num > 0:
-            strategy.optimizer = torch.optim.SGD(strategy.model.parameters(), lr=0.001)
-        
-        strategy.dataloader = torch.utils.data.DataLoader(
-            strategy.adapted_dataset,
-            sampler=BalanceClassSampler(labels=targets, mode='upsampling'),
-            num_workers=num_workers,
-            batch_size=strategy.train_mb_size,
-            shuffle=shuffle)
+            # strategy.optimizer = torch.optim.SGD(strategy.model.parameters(), lr=0.001)
+            strategy._criterion = torch.nn.CrossEntropyLoss()
 
         self.exp_num += 1
 
