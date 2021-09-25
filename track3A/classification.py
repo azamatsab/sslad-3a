@@ -2,6 +2,7 @@ import torch
 import torchvision.models
 from torch.nn import Linear
 from timm.models import create_model
+from timm.loss import LabelSmoothingCrossEntropy
 
 import argparse
 
@@ -66,8 +67,8 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=2000, T_mult=1)
     
-    criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([0., 20., 10., 1., 1., 20., 300.]).to(device))
-    # criterion = torch.nn.CrossEntropyLoss()
+    # criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([0., 20., 10., 1., 1., 20., 300.]).to(device))
+    criterion = torch.nn.CrossEntropyLoss()
     # criterion = FocalLoss(10, 10)
     batch_size = 10
 
