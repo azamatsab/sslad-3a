@@ -68,7 +68,8 @@ def main():
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=2000, T_mult=1)
     
     # criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([0., 20., 10., 1., 1., 20., 300.]).to(device))
-    criterion = torch.nn.CrossEntropyLoss()
+    # criterion = torch.nn.CrossEntropyLoss()
+    criterion = LabelSmoothingCrossEntropy(0.1)
     # criterion = FocalLoss(10, 10)
     batch_size = 10
 

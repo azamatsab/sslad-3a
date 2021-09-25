@@ -228,12 +228,13 @@ class ReplayDataLoader:
         max_len1 = max([len(d) for d in self.loader_data.values()])
         max_len2 = max([len(d) for d in self.loader_memory.values()])
 
-        print(max_len1, max_len2)
-        if max_len1 >= max_len2:
-            self.max_len = max_len1
-        else:
-            remain = max_len2 - max_len1
-            self.max_len = max_len1 + remain // 2
+        # print(max_len1, max_len2)
+        # if max_len1 >= max_len2:
+        #     self.max_len = max_len1
+        # else:
+        #     remain = max_len2 - max_len1
+        #     self.max_len = max_len1 + remain // 2
+        self.max_len = max_len1
 
     def __iter__(self):
         iter_data_dataloaders = {}
