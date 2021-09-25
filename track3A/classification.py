@@ -51,7 +51,7 @@ def main():
     model.fc = Linear(2048, 7, bias=True)
     
     # model = create_model(
-    #         model_name='resnetv2_50x1_bitm',
+    #         model_name='efficientnet_b3',
     #         pretrained=True,
     #         num_classes=7,
     #     )
@@ -64,9 +64,9 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
     # optimizer = torch.optim.AdamW([{'params': model.parameters(), 'initial_lr': 0.0001}], lr=0.0001)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=12000, T_mult=1)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=2000, T_mult=1)
     
-    criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([0., 20., 1., 1., 1., 20., 300.]).to(device))
+    criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([0., 20., 10., 1., 1., 20., 300.]).to(device))
     # criterion = torch.nn.CrossEntropyLoss()
     # criterion = FocalLoss(10, 10)
     batch_size = 10
@@ -80,7 +80,7 @@ def main():
     cwr = CWRStarPlugin(model, freeze_remaining_model=False)
     agem = AGEMPlugin(1000, 100)
     # plugins = [ClassStrategyPlugin(), cwr, replay]    
-    plugins = [ClassStrategyPlugin(), replay]    
+    plugins = [ClassStrategyPlugin(), replay, sch_plugin]    
 
     ######################################
     #                                    #

@@ -59,7 +59,7 @@ class ClassStrategyPlugin(StrategyPlugin):
                               pin_memory=True, **kwargs):
         targets = np.array(strategy.adapted_dataset.targets)
         if self.exp_num > 0:
-            # strategy.optimizer = torch.optim.SGD(strategy.model.parameters(), lr=0.001)
+            # strategy.optimizer = torch.optim.Adam(strategy.model.parameters(), lr=0.0001)
             strategy._criterion = torch.nn.CrossEntropyLoss()
 
         self.exp_num += 1

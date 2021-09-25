@@ -304,6 +304,7 @@ class ReplayDataLoader:
     def _create_dataloaders_upsample(self, data_dict, single_exp_batch_size,
                             remaining_example, targets, **kwargs):
         targets = np.array(targets)
+        length = targets.shape[0]
         max_num = max([targets[targets == i].shape[0] for i in range(1, 7)])
         loaders_dict: Dict[int, DataLoader] = {}
         for task_id in data_dict.task_set:
@@ -327,7 +328,7 @@ class ReplayDataLoader:
             for i in range(1, 7):
                 weights[targets == i] = class_weights[i]
 
-            sampler = WeightedRandomSampler(weights, 3 * max_num, replacement=True)
+            sampler = WeightedRandomSampler(weights, length, replacement=True)
             loaders_dict[task_id] = DataLoader(
                 data, batch_size=current_batch_size, sampler=sampler, **kwargs)
         return loaders_dict, remaining_example
