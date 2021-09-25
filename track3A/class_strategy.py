@@ -58,9 +58,9 @@ class ClassStrategyPlugin(StrategyPlugin):
     def before_training_exp(self, strategy: 'BaseStrategy', num_workers=0, shuffle=False,
                               pin_memory=True, **kwargs):
         targets = np.array(strategy.adapted_dataset.targets)
-        if self.exp_num > 0:
+        # if self.exp_num > 0:
             # strategy.optimizer = torch.optim.Adam(strategy.model.parameters(), lr=0.0001)
-            strategy._criterion = torch.nn.CrossEntropyLoss()
+            # strategy._criterion = torch.nn.CrossEntropyLoss()
 
         self.exp_num += 1
 
