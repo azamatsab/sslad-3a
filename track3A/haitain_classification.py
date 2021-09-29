@@ -71,7 +71,7 @@ class HaitainObjectSet(torch.utils.data.Dataset):
         self.img_size = img_size
         self.root = root
         self.split = split
-        self.mult = 1 if train else 1
+        self.mult = 2 if train else 1
 
     @property
     def targets(self):

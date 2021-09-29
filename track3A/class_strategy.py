@@ -79,20 +79,21 @@ class ClassStrategyPlugin(StrategyPlugin):
 
     def after_train_dataset_adaptation(self, strategy: 'BaseStrategy',
                                        **kwargs):
-        torchvision_transform = transforms.Compose([
-                                transforms.RandomHorizontalFlip(),
-                                transforms.RandomPerspective(),
-                                transforms.RandomErasing(),
-                                # Atw(A.HueSaturationValue(p=0.5)),
-                                # Atw(A.RandomBrightness(p=0.5)),
-                                # normalize,
-                            ])
-        strategy.adapted_dataset = strategy.adapted_dataset.add_transforms(torchvision_transform)
-        # if self.exp_num == 0:
-        #     datasets = []
-        #     for _ in range(3):
-        #         datasets.append(strategy.adapted_dataset._fork_dataset())
-        #     strategy.adapted_dataset = AvalancheConcatDataset(datasets)
+        # torchvision_transform = transforms.Compose([
+        #                         transforms.RandomHorizontalFlip(),
+        #                         transforms.RandomPerspective(),
+        #                         transforms.RandomErasing(),
+        #                         # Atw(A.HueSaturationValue(p=0.5)),
+        #                         # Atw(A.RandomBrightness(p=0.5)),
+        #                         # normalize,
+        #                     ])
+        # strategy.adapted_dataset = strategy.adapted_dataset.add_transforms(torchvision_transform)
+        # # if self.exp_num == 0:
+        # #     datasets = []
+        # #     for _ in range(3):
+        # #         datasets.append(strategy.adapted_dataset._fork_dataset())
+        # #     strategy.adapted_dataset = AvalancheConcatDataset(datasets)
+        pass
 
     def before_training_epoch(self, strategy: 'BaseStrategy', **kwargs):
         pass

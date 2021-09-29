@@ -7,6 +7,18 @@ import haitain_classification as hc
 from avalanche.evaluation import Metric, GenericPluginMetric
 
 
+import torchvision
+
+train_transform = torchvision.transforms.Compose([
+    torchvision.transforms.ToTensor(),
+    torchvision.transforms.Normalize((0.3252, 0.3283, 0.3407), (0.0265, 0.0241, 0.0252)),
+    torchvision.transforms.RandomHorizontalFlip(),
+    # torchvision.transforms.RandomPerspective(),
+    # torchvision.transforms.RandomErasing(),
+])
+
+
+
 def create_val_set(root, img_size, avalanche=True):
     def val_match_fn_1(obj, img_dic, obj_dic):
         img_annot = img_dic[obj_dic[obj.id]['image_id']]
@@ -66,7 +78,7 @@ def create_train_set(root, img_size, avalanche=True, transform=None):
 
     match_fn = (hc.create_match_dict_fn(td) for td in task_dicts)
 
-    train_sets = [hc.get_matching_set(root, 'val', mf, img_size=img_size, transform=transform, train=True) for mf in match_fn]
+    train_sets = [hc.get_matching_set(root, 'val', mf, img_size=img_size, transform=train_transform, train=True) for mf in match_fn]
     for ts in train_sets:
         ts.chronological_sort()
 

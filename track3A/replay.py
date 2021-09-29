@@ -19,6 +19,14 @@ from avalanche.training.plugins.strategy_plugin import StrategyPlugin
 if TYPE_CHECKING:
     from avalanche.training.strategies import BaseStrategy
 
+import torchvision
+
+train_transform = torchvision.transforms.Compose([
+    torchvision.transforms.RandomHorizontalFlip(),
+    torchvision.transforms.RandomPerspective(),
+    torchvision.transforms.RandomErasing(),
+])
+
 
 class ReplayPlugin(StrategyPlugin):
     """
@@ -142,6 +150,7 @@ class ExperienceBalancedStoragePolicy(StoragePolicy):
             dataset.samples = samples[:new_size]
             
             data = AvalancheDataset(AvalancheDataset(dataset))
+            # data = data.add_transforms(train_transform)
         return data
 
     def subsample_all_groups(self, new_size: int):
@@ -176,7 +185,7 @@ class ExperienceBalancedStoragePolicy(StoragePolicy):
 
         # buffer size should always equal self.mem_size
         len_tot = sum(len(el) for el in self.ext_mem.values())
-        assert len_tot <= self.mem_size, (len_tot, (len(el) for el in self.ext_mem.values()))
+        # assert len_tot <= self.mem_size, (len_tot, (len(el) for el in self.ext_mem.values()))
 
 
 class ClassBalancedStoragePolicy(StoragePolicy):

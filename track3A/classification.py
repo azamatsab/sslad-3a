@@ -12,7 +12,7 @@ from avalanche.logging import TextLogger, InteractiveLogger
 from avalanche.training.plugins import EvaluationPlugin, LwFPlugin, CWRStarPlugin, SynapticIntelligencePlugin, \
 ClassBalancedStoragePolicy, AGEMPlugin, CoPEPlugin, EWCPlugin
 from avalanche.training.strategies import Naive
-from avalanche.models import IcarlNet
+from avalanche.models import IcarlNet, SLDAResNetModel
 
 from class_strategy import *
 from classification_util import *
@@ -20,6 +20,7 @@ from lr_scheduler import LRSchedulerIterPlugin
 from losses import FocalLoss
 from lfl import LFLPlugin
 from replay import ReplayPlugin
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -50,13 +51,13 @@ def main():
 
     model = torchvision.models.resnet50(pretrained=True)
     model.fc = Linear(2048, 7, bias=True)
-    
+
     # model = create_model(
-    #         model_name='efficientnet_b3',
+    #         model_name='densenet201',
     #         pretrained=True,
     #         num_classes=7,
     #     )
-    
+
     def count_parameters(model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
